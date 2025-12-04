@@ -23,10 +23,25 @@ app.use('/api/upload', uploadRoutes);
 
 app.get('/', (req, res) => res.send('Api is working fine'))
 
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
 
+// if (process.env.NODE_ENV !== 'production') {
+//     app.listen(PORT, () => console.log((`server running on port ${PORT}`)));
+// }
+
+// ✅ CRITICAL: Connect to DB on each request for serverless
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (error) {
+        res.status(500).json({ error: 'Database connection failed' });
+    }
+});
+
+// For local development
 if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => console.log((`server running on port ${PORT}`)));
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
-
 export default app;
