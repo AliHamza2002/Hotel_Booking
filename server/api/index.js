@@ -1,36 +1,40 @@
 import express from 'express';
 import cors from 'cors';
 import connectDB from '../configs/Database.js';
-import roomRoutes from '../routes/roomRoutes.js';
-import userRoutes from '../routes/userRoutes.js';
-import bookingRoutes from '../routes/bookingRoutes.js';
-import uploadRoutes from '../routes/uploadRoutes.js';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Database middleware
-app.use(async (req, res, next) => {
+// Simple health check without DB
+app.get('/', (req, res) => {
+    res.json({
+        status: 'OK',
+        message: 'API is working!',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Test route with database
+app.get('/db-test', async (req, res) => {
     try {
         await connectDB();
-        next();
+        res.json({ message: 'Database connected successfully!' });
     } catch (error) {
-        console.error('Database connection error:', error);
-        res.status(500).json({ error: 'Database connection failed' });
+        res.status(500).json({ error: 'Database connection failed', details: error.message });
     }
 });
 
-// Root route
-app.get('/', (req, res) => {
-    res.json({ message: 'API is working!' });
+// Simple rooms endpoint without actual routes
+app.get('/rooms', async (req, res) => {
+    try {
+        await connectDB();
+        // For now, just return empty array - we'll add the actual Room model later
+        res.json({ rooms: [], message: 'Rooms endpoint working (DB connected)' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch rooms', details: error.message });
+    }
 });
-
-// Actual routes
-app.use('/rooms', roomRoutes);
-app.use('/users', userRoutes);
-app.use('/bookings', bookingRoutes);
-app.use('/upload', uploadRoutes);
 
 export default app;
