@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 //         await mongoose.connect(`${process.env.MONGODB_URL}/hotel-booking`)
 //     } catch(error){
 //         console.log(error.message);
-        
+
 //     }
 // }
 
@@ -57,8 +57,8 @@ const connectDB = async () => {
 
     try {
         console.log('🔄 Attempting database connection...');
-        
-        const db = await mongoose.connect(process.env.MONGO_URI, {
+
+        const db = await mongoose.connect(`${process.env.MONGODB_URL}/hotel-booking`, {
             serverSelectionTimeoutMS: 5000,
             socketTimeoutMS: 45000,
             family: 4, // Use IPv4, skip trying IPv6
@@ -66,7 +66,7 @@ const connectDB = async () => {
 
         isConnected = db.connections[0].readyState === 1;
         console.log('✅ MongoDB connected successfully');
-        
+
     } catch (error) {
         console.error('❌ MongoDB connection error:', error.message);
         isConnected = false;
