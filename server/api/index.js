@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/api/test-express', (req, res) => {
+app.get('/test-express', (req, res) => {
     res.json({ message: 'Express is working!' });
 });
 
@@ -30,5 +30,7 @@ app.use((req, res) => {
     });
 });
 
-// Export for Vercel
-export default app;
+// Export handler for Vercel (CRITICAL FORMAT)
+export default function handler(req, res) {
+    return app(req, res);
+}
