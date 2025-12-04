@@ -7,7 +7,7 @@ import userRoutes from './routes/userRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 
-connectDB()
+//connectDB()
 
 const app = express()
 app.use(cors()) //Enable cross-origin resouse sharing
