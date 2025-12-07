@@ -12,6 +12,43 @@ export const getAllRooms = async (req, res) => {
     }
 }
 
+// Helper function for Levenshtein distance
+const levenshteinDistance = (a, b) => {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+
+    const matrix = [];
+
+    // increment along the first column of each row
+    for (let i = 0; i <= b.length; i++) {
+        matrix[i] = [i];
+    }
+
+    // increment each column in the first row
+    for (let j = 0; j <= a.length; j++) {
+        matrix[0][j] = j;
+    }
+
+    // Fill in the rest of the matrix
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                matrix[i][j] = matrix[i - 1][j - 1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1, // substitution
+                    Math.min(
+                        matrix[i][j - 1] + 1, // insertion
+                        matrix[i - 1][j] + 1 // deletion
+                    )
+                );
+            }
+        }
+    }
+
+    return matrix[b.length][a.length];
+};
+
 //Search rooms with filters - WITH FUZZY CITY MATCHING
 export const searchRooms = async (req, res) => {
     try {
@@ -19,28 +56,34 @@ export const searchRooms = async (req, res) => {
 
         let filters = { isAvailable: true };
 
-        // City filter with BETTER FUZZY MATCHING
+        // City filter with LEVENSHTEIN DISTANCE
         if (city) {
-            // Escape special regex characters
-            const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-            const escapedCity = escapeRegex(city);
+            // 1. Get all distinct cities from DB
+            const distinctCities = await Room.distinct('city');
 
-            // Create flexible patterns:
-            // 1. Exact match (case-insensitive)
-            // 2. Contains the search term
-            // 3. Fuzzy: each character with optional characters between
-            const fuzzyChars = city.split('').map(c => escapeRegex(c)).join('.*?');
+            // 2. Find the best matching city using Levenshtein distance
+            // We look for a city that is "close enough"
+            const searchCity = city.toLowerCase();
 
-            filters.$or = [
-                // Exact match
-                { city: { $regex: `^${escapedCity}$`, $options: 'i' } },
-                // Starts with
-                { city: { $regex: `^${escapedCity}`, $options: 'i' } },
-                // Contains
-                { city: { $regex: escapedCity, $options: 'i' } },
-                // Fuzzy - characters in order with anything between
-                { city: { $regex: fuzzyChars, $options: 'i' } }
-            ];
+            // Find all cities that are close matches (distance <= 3)
+            const matchedCities = distinctCities.filter(dbCity => {
+                const dbCityLower = dbCity.toLowerCase();
+
+                // Direct match or contains
+                if (dbCityLower.includes(searchCity) || searchCity.includes(dbCityLower)) return true;
+
+                // Levenshtein distance
+                const distance = levenshteinDistance(searchCity, dbCityLower);
+                return distance <= 3; // Allow up to 3 typos
+            });
+
+            if (matchedCities.length > 0) {
+                // Filter by ANY of the matched cities
+                filters.city = { $in: matchedCities };
+            } else {
+                // Fallback to regex if no close match found
+                filters.city = { $regex: city, $options: 'i' };
+            }
         }
 
         //room Type filter
