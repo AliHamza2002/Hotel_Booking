@@ -100,9 +100,6 @@ const AddRoom = () => {
             return;
         }
 
-        // Collect selected amenities
-        const selectedAmenities = Object.keys(input.amenities).filter(key => input.amenities[key]);
-
         setLoading(true);
 
         try {
@@ -113,7 +110,7 @@ const AddRoom = () => {
                 roomType: input.roomType,
                 pricePerNight: Number(input.pricePerNight),
                 maxGuests: Number(input.maxGuests),
-                amenities: selectedAmenities,
+                amenities: input.amenities,
                 images: validImageUrls
             };
 
