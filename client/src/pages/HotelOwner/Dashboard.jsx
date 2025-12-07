@@ -13,6 +13,7 @@ const Dashboard = () => {
     const [updatingPayment, setUpdatingPayment] = useState(null);
     const [cancellingBooking, setCancellingBooking] = useState(null);
     const [confirmingBooking, setConfirmingBooking] = useState(null);
+    const [selectedBooking, setSelectedBooking] = useState(null);
 
     useEffect(() => {
         fetchDashboardData();
@@ -63,6 +64,7 @@ const Dashboard = () => {
                 if (response.data.success) {
                     alert('Booking cancelled successfully!');
                     fetchDashboardData();
+                    setSelectedBooking(null);
                 }
             } catch (error) {
                 alert(error.response?.data?.message || 'Failed to cancel booking.');
@@ -80,6 +82,7 @@ const Dashboard = () => {
                 if (response.data.success) {
                     alert('Booking confirmed successfully!');
                     fetchDashboardData();
+                    setSelectedBooking(null);
                 }
             } catch (error) {
                 alert(error.response?.data?.message || 'Failed to confirm booking.');
@@ -87,6 +90,14 @@ const Dashboard = () => {
                 setConfirmingBooking(null);
             }
         }
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
     };
 
     if (loading) {
@@ -133,7 +144,11 @@ const Dashboard = () => {
                     <tbody className='text-sm'>
                         {dashboardData.bookings.length > 0 ? (
                             dashboardData.bookings.map((item, index) => (
-                                <tr key={index}>
+                                <tr
+                                    key={index}
+                                    onClick={() => setSelectedBooking(item)}
+                                    className='cursor-pointer hover:bg-gray-50 transition-colors'
+                                >
                                     <td className='py-3 px-4 text-gray-700 border-t border-gray-300'>
                                         {item.userId?.name || 'Unknown User'}
                                     </td>
@@ -150,7 +165,10 @@ const Dashboard = () => {
                                             </span>
                                             {item.paymentStatus === 'pending' && item.status !== 'cancelled' && (
                                                 <button
-                                                    onClick={() => handleMarkAsPaid(item._id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleMarkAsPaid(item._id);
+                                                    }}
                                                     disabled={updatingPayment === item._id}
                                                     className='px-3 py-1 text-xs bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
                                                 >
@@ -167,7 +185,7 @@ const Dashboard = () => {
                                             {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                         </span>
                                     </td>
-                                    <td className='py-3 px-4 border-t border-gray-300 text-center'>
+                                    <td className='py-3 px-4 border-t border-gray-300 text-center' onClick={(e) => e.stopPropagation()}>
                                         <div className='flex gap-2 justify-center'>
                                             {item.status === 'pending' && (
                                                 <>
@@ -205,6 +223,100 @@ const Dashboard = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Booking Details Modal */}
+            {selectedBooking && (
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                    onClick={() => setSelectedBooking(null)}
+                >
+                    <div
+                        className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <h2 className="text-2xl font-bold text-gray-800">Booking Details</h2>
+                                <button
+                                    onClick={() => setSelectedBooking(null)}
+                                    className="text-gray-500 hover:text-gray-700 text-2xl"
+                                >
+                                    ×
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                {/* Guest Information */}
+                                <div className="border-b pb-4">
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Guest Information</h3>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        <p><span className="font-medium">Name:</span> {selectedBooking.userId?.name || 'N/A'}</p>
+                                        <p><span className="font-medium">Email:</span> {selectedBooking.userId?.email || 'N/A'}</p>
+                                        <p><span className="font-medium">Guests:</span> {selectedBooking.numberOfGuests}</p>
+                                    </div>
+                                </div>
+
+                                {/* Room Information */}
+                                <div className="border-b pb-4">
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Room Information</h3>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        <p><span className="font-medium">Hotel:</span> {selectedBooking.roomId?.hotelName || 'N/A'}</p>
+                                        <p><span className="font-medium">Room Type:</span> {selectedBooking.roomId?.roomType || 'N/A'}</p>
+                                        <p><span className="font-medium">City:</span> {selectedBooking.roomId?.city || 'N/A'}</p>
+                                    </div>
+                                </div>
+
+                                {/* Booking Details */}
+                                <div className="border-b pb-4">
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-2">Booking Details</h3>
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        <p><span className="font-medium">Check-in:</span> {formatDate(selectedBooking.checkInDate)}</p>
+                                        <p><span className="font-medium">Check-out:</span> {formatDate(selectedBooking.checkOutDate)}</p>
+                                        <p><span className="font-medium">Total Amount:</span> ${selectedBooking.totalPrice}</p>
+                                        <p><span className="font-medium">Booking ID:</span> {selectedBooking._id.slice(-8)}</p>
+                                        <p>
+                                            <span className="font-medium">Status:</span>
+                                            <span className={`ml-2 py-1 px-3 text-xs rounded-full ${selectedBooking.status === 'confirmed' ? 'bg-green-200 text-green-600' :
+                                                    selectedBooking.status === 'cancelled' ? 'bg-red-200 text-red-600' :
+                                                        'bg-amber-200 text-yellow-600'
+                                                }`}>
+                                                {selectedBooking.status.charAt(0).toUpperCase() + selectedBooking.status.slice(1)}
+                                            </span>
+                                        </p>
+                                        <p>
+                                            <span className="font-medium">Payment:</span>
+                                            <span className={`ml-2 py-1 px-3 text-xs rounded-full ${selectedBooking.paymentStatus === 'paid' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                                                }`}>
+                                                {selectedBooking.paymentStatus === 'paid' ? 'Paid' : 'Pending'}
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                {selectedBooking.status === 'pending' && (
+                                    <div className="flex gap-3 justify-end pt-4">
+                                        <button
+                                            onClick={() => handleConfirmBooking(selectedBooking._id)}
+                                            disabled={confirmingBooking === selectedBooking._id}
+                                            className='px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+                                        >
+                                            {confirmingBooking === selectedBooking._id ? 'Confirming...' : 'Confirm Booking'}
+                                        </button>
+                                        <button
+                                            onClick={() => handleCancelBooking(selectedBooking._id)}
+                                            disabled={cancellingBooking === selectedBooking._id}
+                                            className='px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+                                        >
+                                            {cancellingBooking === selectedBooking._id ? 'Cancelling...' : 'Cancel Booking'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
