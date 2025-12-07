@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import connectDB from './configs/Database.js';
+import roomRoutes from './routes/roomRoutes.js';
 
 const app = express();
 
@@ -23,14 +24,7 @@ app.get('/', (req, res) => {
     res.json({ message: 'API is working with database!' });
 });
 
-// Test DB connection
-app.get('/api/test-db', async (req, res) => {
-    res.json({ message: 'Database connected successfully!' });
-});
-
-// Simple rooms endpoint (no routes file yet)
-app.get('/api/rooms', (req, res) => {
-    res.json({ rooms: [], message: 'Rooms endpoint - DB connected' });
-});
+// API Routes - adding rooms first
+app.use('/api/rooms', roomRoutes);
 
 export default app;
