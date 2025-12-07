@@ -3,6 +3,7 @@ import cors from 'cors';
 import connectDB from './configs/Database.js';
 import roomRoutes from './routes/roomRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
 
 const app = express();
 
@@ -25,8 +26,9 @@ app.get('/', (req, res) => {
     res.json({ message: 'API is working!' });
 });
 
-// API Routes - adding rooms and users
+// API Routes
 app.use('/api/rooms', roomRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 export default app;
