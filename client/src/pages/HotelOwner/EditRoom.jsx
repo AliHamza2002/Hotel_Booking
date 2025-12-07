@@ -135,8 +135,10 @@ const EditRoom = () => {
     }
 
     const handleSubmit = async () => {
+        console.log("Handle submit called");
         // Validation
         if (!input.hotelName || !input.city || !input.roomType || !input.pricePerNight) {
+            console.log("Validation failed: missing fields", input);
             alert("Please fill in all required fields");
             return;
         }
@@ -144,6 +146,7 @@ const EditRoom = () => {
         // Collect valid image URLs
         const validImageUrls = Object.values(imageUrls).filter(url => url !== '');
         if (validImageUrls.length === 0) {
+            console.log("Validation failed: no images");
             alert("Please upload at least one image");
             return;
         }
@@ -162,7 +165,9 @@ const EditRoom = () => {
                 images: validImageUrls
             };
 
+            console.log("Sending update request for ID:", id, "Data:", roomData);
             await roomAPI.updateRoom(id, roomData);
+            console.log("Update success, navigating...");
             alert("Room updated successfully!");
             navigate('/owner/list-room');
         } catch (error) {
