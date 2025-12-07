@@ -10,6 +10,7 @@ import HotelReg from './component/HotelReg';
 import Layout from './pages/HotelOwner/Layout';
 import Dashboard from './pages/HotelOwner/Dashboard';
 import AddRoom from './pages/HotelOwner/AddRoom';
+import EditRoom from './pages/HotelOwner/EditRoom';
 import ListRoom from './pages/HotelOwner/ListRoom';
 import Experience from './pages/Experience';
 import Login from './pages/Login';
@@ -39,6 +40,7 @@ const App = () => {
           <Route path='/owner' element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
             <Route path='add-room' element={<AddRoom />} />
+            <Route path='edit-room/:id' element={<EditRoom />} />
             <Route path='list-room' element={<ListRoom />} />
           </Route>
         </Routes>

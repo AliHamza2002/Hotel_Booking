@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import Title from '../../component/Title'
 import { roomAPI } from '../../services/api'
+import { useNavigate } from 'react-router-dom'
 
 const ListRoom = () => {
-
+    const navigate = useNavigate();
     const [rooms, setRooms] = useState([])
     const [loading, setLoading] = useState(true);
 
@@ -38,6 +39,19 @@ const ListRoom = () => {
         }
     };
 
+    const handleDelete = async (roomId) => {
+        if (window.confirm("Are you sure you want to delete this room?")) {
+            try {
+                await roomAPI.deleteRoom(roomId);
+                setRooms(rooms.filter(room => room._id !== roomId));
+                alert("Room deleted successfully");
+            } catch (error) {
+                console.error("Failed to delete room:", error);
+                alert("Failed to delete room");
+            }
+        }
+    };
+
     // Helper function to display amenities
     const displayAmenities = (amenities) => {
         if (!amenities) return 'N/A';
@@ -64,6 +78,7 @@ const ListRoom = () => {
                             <th className='py-3 px-4 text-gray-800 font-medium max-sm:hidden'>Facility</th>
                             <th className='py-3 px-4 text-gray-800 font-medium '>Price / night</th>
                             <th className='py-3 px-4 text-gray-800 font-medium text-center'>Availability</th>
+                            <th className='py-3 px-4 text-gray-800 font-medium text-center'>Action</th>
                         </tr>
                     </thead>
                     <tbody className='text-sm'>
@@ -93,11 +108,27 @@ const ListRoom = () => {
                                             </span>
                                         </label>
                                     </td>
+                                    <td className='py-3 px-4 border-t border-gray-300 text-sm text-center'>
+                                        <div className='flex items-center justify-center gap-2'>
+                                            <button
+                                                onClick={() => navigate(`/owner/edit-room/${item._id}`)}
+                                                className='text-blue-600 hover:text-blue-800 font-medium'
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(item._id)}
+                                                className='text-red-600 hover:text-red-800 font-medium'
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="4" className="py-4 text-center text-gray-500">No rooms listed yet</td>
+                                <td colSpan="5" className="py-4 text-center text-gray-500">No rooms listed yet</td>
                             </tr>
                         )}
                     </tbody>
