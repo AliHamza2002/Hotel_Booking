@@ -73,8 +73,12 @@ const AllRooms = () => {
 
       let response;
 
-      // If search parameters exist, use search endpoint
-      if (city || checkIn || checkOut || guests) {
+      // If city search, use fuzzy search
+      if (city && !checkIn && !checkOut && !guests) {
+        response = await roomAPI.searchRooms({ city });
+      }
+      // If search parameters exist, use booking search endpoint
+      else if (city || checkIn || checkOut || guests) {
         const params = {};
         if (city) params.city = city;
         if (checkIn) params.checkIn = checkIn;
