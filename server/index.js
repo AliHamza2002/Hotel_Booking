@@ -3,8 +3,6 @@ import cors from 'cors';
 import connectDB from './configs/Database.js';
 import roomRoutes from './routes/roomRoutes.js';
 import userRoutes from './routes/userRoutes.js';
-import bookingRoutes from './routes/bookingRoutes.js';
-import uploadRoutes from './routes/uploadRoutes.js';
 
 const app = express();
 
@@ -24,13 +22,11 @@ app.use(async (req, res, next) => {
 
 // Health check
 app.get('/', (req, res) => {
-    res.json({ message: 'API is working with database!' });
+    res.json({ message: 'API is working!' });
 });
 
-// All API Routes
+// API Routes - adding rooms and users
 app.use('/api/rooms', roomRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/bookings', bookingRoutes);
-app.use('/api/upload', uploadRoutes);
 
 export default app;
