@@ -53,10 +53,27 @@ const RoomDetail = () => {
     const getAmenitiesArray = (amenities) => {
         if (!amenities) return [];
         if (Array.isArray(amenities)) return amenities;
+        if (typeof amenities === 'string') {
+            try {
+                const parsed = JSON.parse(amenities);
+                if (Array.isArray(parsed)) return parsed;
+            } catch (e) {
+                return amenities.split(',').map(item => item.trim());
+            }
+        }
         if (typeof amenities === 'object') {
             return Object.keys(amenities).filter(key => amenities[key]);
         }
         return [];
+    };
+
+    // Helper to get icon case-insensitively
+    const getFacilityIcon = (amenityName) => {
+        if (!amenityName) return null;
+        if (facilityIcons[amenityName]) return facilityIcons[amenityName];
+        const lowerName = amenityName.toLowerCase();
+        const foundKey = Object.keys(facilityIcons).find(key => key.toLowerCase() === lowerName);
+        return foundKey ? facilityIcons[foundKey] : null;
     };
 
     // Handle form input changes
@@ -157,6 +174,9 @@ const RoomDetail = () => {
     }
 
     const amenitiesArray = getAmenitiesArray(room.amenities);
+    console.log("Room Data:", room);
+    console.log("Raw Amenities:", room.amenities);
+    console.log("Processed Amenities Array:", amenitiesArray);
 
     return (
         <div className='py-28 md:py-35 px-4 md:px-16 lg:px-24 xl:px-32'>
@@ -196,12 +216,15 @@ const RoomDetail = () => {
                 </div>
                 {amenitiesArray.length > 0 && (
                     <div className='flex flex-wrap items-center mt-3 mb-6 gap-4'>
-                        {amenitiesArray.map((item, index) => (
-                            <div key={index} className='flex items-center gap-2 px-3 py-2 rounded-lg bg-[#f5f5f5]/70'>
-                                {facilityIcons[item] && <img src={facilityIcons[item]} alt={item} className='w-5 h-5' />}
-                                <p className='text-sm'>{item}</p>
-                            </div>
-                        ))}
+                        {amenitiesArray.map((item, index) => {
+                            const icon = getFacilityIcon(item);
+                            return (
+                                <div key={index} className='flex items-center gap-2 px-3 py-2 rounded-lg bg-[#f5f5f5]/70'>
+                                    {icon && <img src={icon} alt={item} className='w-5 h-5' />}
+                                    <p className='text-sm'>{item}</p>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
