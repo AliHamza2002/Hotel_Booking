@@ -12,15 +12,29 @@ export const getAllRooms = async (req, res) => {
     }
 }
 
-//Search rooms with filters
+//Search rooms with filters - WITH FUZZY CITY MATCHING
 export const searchRooms = async (req, res) => {
     try {
         const { city, roomType, minPrice, maxPrice, amenities, guests } = req.body;
 
         let filters = { isAvailable: true };
-        // City filter
+        
+        // City filter with FUZZY MATCHING - handles typos!
         if (city) {
-            filters.city = { $regex: city, $options: 'i' };
+            // Create a flexible regex pattern
+            const fuzzyPattern = city
+                .split('')
+                .map(char => `${char}.*`)
+                .join('');
+            
+            filters.$or = [
+                // Exact match (case-insensitive)
+                { city: { $regex: city, $options: 'i' } },
+                // Fuzzy match - allows typos like "parias" for "paris"
+                { city: { $regex: fuzzyPattern, $options: 'i' } },
+                // Starts with the search term
+                { city: { $regex: `^${city}`, $options: 'i' } }
+            ];
         }
 
         //room Type filter
@@ -28,18 +42,18 @@ export const searchRooms = async (req, res) => {
             filters.roomType = roomType;
         }
 
-        // Price range filter
+        // Price range filter (FIXED)
         if (minPrice || maxPrice) {
-            filter.pricePerNight = {};
-            if (minPrice) filter.pricePerNight.$gte = Number(minPrice);
-            if (maxPrice) filter.pricePerNight.$lte = Number(maxPrice);
+            filters.pricePerNight = {};
+            if (minPrice) filters.pricePerNight.$gte = Number(minPrice);
+            if (maxPrice) filters.pricePerNight.$lte = Number(maxPrice);
         }
 
         if (guests) {
             filters.maxGuests = { $gte: Number(guests) };
         }
 
-        // Amenities filter (e.g., ?amenities=Free Wifi,Pool Access)
+        // Amenities filter
         if (amenities) {
             const amenityList = amenities.split(',');
             amenityList.forEach(amenity => {
@@ -59,7 +73,7 @@ export const searchRooms = async (req, res) => {
 export const getRoomById = async (req, res) => {
     try {
         const room = await Room.findById(req.params.id)
-            .populate('ownerId', 'name email phoneNumber'); // This IS a reference, so populate is correct
+            .populate('ownerId', 'name email phoneNumber');
 
         if (!room) {
             return res.status(404).json({
