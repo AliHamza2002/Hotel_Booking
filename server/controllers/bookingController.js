@@ -137,7 +137,7 @@ export const createBooking = async (req, res) => {
             checkOutDate: end,
             numberOfGuests,
             totalPrice,
-            status: 'confirmed', // Auto-confirm for now
+            status: 'pending', // Owner needs to confirm
             paymentStatus: 'pending' // Default
         });
 
@@ -228,6 +228,38 @@ export const ownerCancelBooking = async (req, res) => {
         await booking.save();
 
         res.status(200).json({ success: true, message: "Booking cancelled successfully by hotel owner", data: booking });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Confirm a booking (by hotel owner)
+export const ownerConfirmBooking = async (req, res) => {
+    try {
+        const booking = await Booking.findById(req.params.id).populate('roomId');
+
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        // Check if the user owns the room
+        if (booking.roomId.ownerId.toString() !== req.userId) {
+            return res.status(403).json({ success: false, message: "Not authorized to confirm this booking" });
+        }
+
+        // Check if booking can be confirmed
+        if (booking.status === 'cancelled') {
+            return res.status(400).json({ success: false, message: "Cannot confirm a cancelled booking" });
+        }
+
+        if (booking.status === 'confirmed') {
+            return res.status(400).json({ success: false, message: "Booking is already confirmed" });
+        }
+
+        booking.status = 'confirmed';
+        await booking.save();
+
+        res.status(200).json({ success: true, message: "Booking confirmed successfully", data: booking });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
