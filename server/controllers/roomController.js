@@ -18,22 +18,28 @@ export const searchRooms = async (req, res) => {
         const { city, roomType, minPrice, maxPrice, amenities, guests } = req.body;
 
         let filters = { isAvailable: true };
-        
-        // City filter with FUZZY MATCHING - handles typos!
+
+        // City filter with BETTER FUZZY MATCHING
         if (city) {
-            // Create a flexible regex pattern
-            const fuzzyPattern = city
-                .split('')
-                .map(char => `${char}.*`)
-                .join('');
-            
+            // Escape special regex characters
+            const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const escapedCity = escapeRegex(city);
+
+            // Create flexible patterns:
+            // 1. Exact match (case-insensitive)
+            // 2. Contains the search term
+            // 3. Fuzzy: each character with optional characters between
+            const fuzzyChars = city.split('').map(c => escapeRegex(c)).join('.*?');
+
             filters.$or = [
-                // Exact match (case-insensitive)
-                { city: { $regex: city, $options: 'i' } },
-                // Fuzzy match - allows typos like "parias" for "paris"
-                { city: { $regex: fuzzyPattern, $options: 'i' } },
-                // Starts with the search term
-                { city: { $regex: `^${city}`, $options: 'i' } }
+                // Exact match
+                { city: { $regex: `^${escapedCity}$`, $options: 'i' } },
+                // Starts with
+                { city: { $regex: `^${escapedCity}`, $options: 'i' } },
+                // Contains
+                { city: { $regex: escapedCity, $options: 'i' } },
+                // Fuzzy - characters in order with anything between
+                { city: { $regex: fuzzyChars, $options: 'i' } }
             ];
         }
 
