@@ -178,13 +178,13 @@ const RoomDetail = () => {
             {/*Room Images */}
             <div className='flex flex-col lg:flex-row mt-6 gap-6'>
                 <div className='lg:w-1/2 w-full'>
-                    <img src={mainImage} alt="room-image" className='w-full rounded-xl shadow-lg object-cover' />
+                    <img src={mainImage} alt="room-image" className='w-full h-[400px] md:h-[500px] rounded-xl shadow-lg object-cover' />
                 </div>
                 <div className='grid grid-cols-2 gap-4 lg:w-1/2 w-full' >
                     {room?.images.length > 1 && room.images.map((image, index) => (
                         <img onClick={() => setMainImage(image)}
                             key={index} src={image} alt="Room-Image"
-                            className={`w-full rounded-xl shadow-md object-cover cursor-pointer ${mainImage == image && 'outline outline-3 outline-orange-500'}`} />
+                            className={`w-full h-32 md:h-40 rounded-xl shadow-md object-cover cursor-pointer ${mainImage == image && 'outline outline-3 outline-orange-500'}`} />
                     ))}
                 </div>
             </div>

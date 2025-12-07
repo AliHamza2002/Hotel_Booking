@@ -275,7 +275,7 @@ const AllRooms = () => {
                   src={room.images[0]}
                   alt="hotel-img"
                   title="View Room Detail"
-                  className="w-full md:w-[45%] max-h-72 rounded-xl shadow-md object-cover cursor-pointer"
+                  className="w-full md:w-[45%] h-72 rounded-xl shadow-md object-cover cursor-pointer"
                 />
 
                 {/* Room Details */}
