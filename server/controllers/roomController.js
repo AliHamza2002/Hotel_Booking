@@ -127,11 +127,17 @@ export const updateRoom = async (req, res) => {
         }
 
         // Update room fields
-        const updateRoom = await Room.findByIdAndUpdate(
+        const updatedRoom = await Room.findByIdAndUpdate(
             req.params.id,
             req.body,
             { new: true, runValidators: true }
         );
+
+        res.status(200).json({
+            success: true,
+            message: 'Room updated successfully',
+            data: updatedRoom
+        });
 
     }
     catch (error) {
