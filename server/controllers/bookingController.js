@@ -182,7 +182,7 @@ export const getOwnerBookings = async (req, res) => {
     }
 };
 
-// Cancel a booking
+// Cancel a booking (by guest)
 export const cancelBooking = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.id);
@@ -200,6 +200,34 @@ export const cancelBooking = async (req, res) => {
         await booking.save();
 
         res.status(200).json({ success: true, message: "Booking cancelled successfully", data: booking });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Cancel a booking (by hotel owner)
+export const ownerCancelBooking = async (req, res) => {
+    try {
+        const booking = await Booking.findById(req.params.id).populate('roomId');
+
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        // Check if the user owns the room
+        if (booking.roomId.ownerId.toString() !== req.userId) {
+            return res.status(403).json({ success: false, message: "Not authorized to cancel this booking" });
+        }
+
+        // Check if booking can be cancelled
+        if (booking.status === 'cancelled') {
+            return res.status(400).json({ success: false, message: "Booking is already cancelled" });
+        }
+
+        booking.status = 'cancelled';
+        await booking.save();
+
+        res.status(200).json({ success: true, message: "Booking cancelled successfully by hotel owner", data: booking });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
