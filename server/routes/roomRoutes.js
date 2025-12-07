@@ -12,7 +12,7 @@ router.delete("/:id", verifyToken, deleteRoom);         // Delete room
 
 // PUBLIC ROUTES
 router.get("/", getAllRooms);                    // Get all available rooms
-router.post("/search", searchRooms);             // Search with filters (POST for fuzzy search)
+router.get("/search", searchRooms);              // Search with filters
 router.get("/:id", getRoomById);                 // Get single room details
 
 export default router;
