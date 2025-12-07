@@ -12,6 +12,7 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [updatingPayment, setUpdatingPayment] = useState(null);
     const [cancellingBooking, setCancellingBooking] = useState(null);
+    const [confirmingBooking, setConfirmingBooking] = useState(null);
 
     useEffect(() => {
         fetchDashboardData();
@@ -44,7 +45,7 @@ const Dashboard = () => {
                 const response = await bookingAPI.markAsPaid(bookingId);
                 if (response.data.success) {
                     alert('Payment status updated successfully!');
-                    fetchDashboardData(); // Refresh dashboard
+                    fetchDashboardData();
                 }
             } catch (error) {
                 alert(error.response?.data?.message || 'Failed to update payment status.');
@@ -61,12 +62,29 @@ const Dashboard = () => {
                 const response = await bookingAPI.ownerCancelBooking(bookingId);
                 if (response.data.success) {
                     alert('Booking cancelled successfully!');
-                    fetchDashboardData(); // Refresh dashboard
+                    fetchDashboardData();
                 }
             } catch (error) {
                 alert(error.response?.data?.message || 'Failed to cancel booking.');
             } finally {
                 setCancellingBooking(null);
+            }
+        }
+    };
+
+    const handleConfirmBooking = async (bookingId) => {
+        if (window.confirm('Confirm this booking?')) {
+            setConfirmingBooking(bookingId);
+            try {
+                const response = await bookingAPI.ownerConfirmBooking(bookingId);
+                if (response.data.success) {
+                    alert('Booking confirmed successfully!');
+                    fetchDashboardData();
+                }
+            } catch (error) {
+                alert(error.response?.data?.message || 'Failed to confirm booking.');
+            } finally {
+                setConfirmingBooking(null);
             }
         }
     };
@@ -100,9 +118,8 @@ const Dashboard = () => {
             {/* Recent Booking */}
             <h2 className='text-xl text-blue-950/70 font-medium mb-5'>Recent Bookings</h2>
 
-            <div className='w-full max-w-3xl text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll'>
-
-                <table className='w-full'>
+            <div className='w-full text-left border border-gray-300 rounded-lg max-h-80 overflow-y-scroll overflow-x-auto'>
+                <table className='w-full min-w-max'>
                     <thead className='bg-gray-50'>
                         <tr>
                             <th className='py-3 px-4 text-gray-800 font-medium'>User Name</th>
@@ -144,22 +161,39 @@ const Dashboard = () => {
                                     </td>
                                     <td className='py-3 px-4 border-t border-gray-300 text-center'>
                                         <span className={`py-1 px-3 text-xs rounded-full ${item.status === 'confirmed' ? 'bg-green-200 text-green-600' :
-                                            item.status === 'cancelled' ? 'bg-red-200 text-red-600' :
-                                                'bg-amber-200 text-yellow-600'
+                                                item.status === 'cancelled' ? 'bg-red-200 text-red-600' :
+                                                    'bg-amber-200 text-yellow-600'
                                             }`}>
                                             {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                         </span>
                                     </td>
                                     <td className='py-3 px-4 border-t border-gray-300 text-center'>
-                                        {item.status !== 'cancelled' && (
-                                            <button
-                                                onClick={() => handleCancelBooking(item._id)}
-                                                disabled={cancellingBooking === item._id}
-                                                className='px-3 py-1 text-xs bg-red-500 text-white rounded-full hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
-                                            >
-                                                {cancellingBooking === item._id ? 'Cancelling...' : 'Cancel'}
-                                            </button>
-                                        )}
+                                        <div className='flex gap-2 justify-center'>
+                                            {item.status === 'pending' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleConfirmBooking(item._id)}
+                                                        disabled={confirmingBooking === item._id}
+                                                        className='px-3 py-1 text-xs bg-green-500 text-white rounded-full hover:bg-green-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+                                                    >
+                                                        {confirmingBooking === item._id ? 'Confirming...' : 'Confirm'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleCancelBooking(item._id)}
+                                                        disabled={cancellingBooking === item._id}
+                                                        className='px-3 py-1 text-xs bg-red-500 text-white rounded-full hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+                                                    >
+                                                        {cancellingBooking === item._id ? 'Cancelling...' : 'Cancel'}
+                                                    </button>
+                                                </>
+                                            )}
+                                            {item.status === 'confirmed' && (
+                                                <span className='text-xs text-gray-500'>Confirmed</span>
+                                            )}
+                                            {item.status === 'cancelled' && (
+                                                <span className='text-xs text-gray-500'>Cancelled</span>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))
@@ -170,7 +204,6 @@ const Dashboard = () => {
                         )}
                     </tbody>
                 </table>
-
             </div>
         </div>
     )

@@ -71,6 +71,7 @@ export const bookingAPI = {
     getOwnerBookings: () => api.get('/bookings/owner'),
     cancelBooking: (id) => api.post(`/bookings/cancel/${id}`),
     ownerCancelBooking: (id) => api.post(`/bookings/owner/cancel/${id}`),
+    ownerConfirmBooking: (id) => api.post(`/bookings/owner/confirm/${id}`),
     makePayment: (id) => api.post(`/bookings/payment/${id}`),
     markAsPaid: (id) => api.post(`/bookings/owner/payment/${id}`),
     searchAvailableRooms: (params) => api.get('/bookings/search', { params }),
