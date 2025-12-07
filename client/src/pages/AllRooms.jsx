@@ -3,7 +3,6 @@ import { assets, facilityIcons } from "../assets/assets";
 import { roomAPI, bookingAPI } from "../services/api";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import StarRating from "../component/StarRating";
-import HotelCard from "../component/HotelCard";
 
 const CheckBox = ({ label, selected = false, onChange = () => { } }) => {
   return (
@@ -259,11 +258,81 @@ const AllRooms = () => {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredRooms.map((room, index) => (
-              <HotelCard key={room._id} room={room} index={index} />
-            ))}
-          </div>
+          filteredRooms.map((room) => {
+            const amenitiesArray = getAmenitiesArray(room.amenities);
+
+            return (
+              <div
+                key={room._id}
+                className="flex flex-col md:flex-row items-start py-10 gap-6 border-b border-gray-300 last:pb-20 last:border-0"
+              >
+                {/* Room Image */}
+                <img
+                  onClick={() => {
+                    navigate(`/room/${room._id}`);
+                    scrollTo(0, 0);
+                  }}
+                  src={room.images[0]}
+                  alt="hotel-img"
+                  title="View Room Detail"
+                  className="w-full md:w-[45%] h-72 rounded-xl shadow-md object-cover cursor-pointer"
+                />
+
+                {/* Room Details */}
+                <div className="flex flex-col gap-2 w-full md:w-1/2">
+                  <p className="text-gray-500">{room.city}</p>
+                  <p
+                    onClick={() => {
+                      navigate(`/room/${room._id}`);
+                      scrollTo(0, 0);
+                    }}
+                    className="text-gray-800 text-2xl sm:text-3xl font-playfair cursor-pointer"
+                  >
+                    {room.hotelName}
+                  </p>
+
+                  <div className="flex items-center text-sm">
+                    <StarRating />
+                    <p className="ml-2 text-gray-600">200+ reviews</p>
+                  </div>
+
+                  <div className="flex items-center gap-1 text-gray-500 mt-2 text-sm">
+                    <img
+                      src={assets.locationIcon}
+                      alt="location-icon"
+                      className="w-4 h-4"
+                    />
+                    <span>{room.city}</span>
+                  </div>
+
+                  {/* Amenities */}
+                  {amenitiesArray.length > 0 && (
+                    <div className="flex flex-wrap items-center mt-3 mb-5 gap-3 sm:gap-4">
+                      {amenitiesArray.map((item, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#f5f5f5]/70 text-xs"
+                        >
+                          {facilityIcons[item] && (
+                            <img
+                              src={facilityIcons[item]}
+                              alt={item}
+                              className="w-4 h-4 sm:w-5 sm:h-5"
+                            />
+                          )}
+                          <p>{item}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="text-lg sm:text-xl font-medium text-gray-700">
+                    ${room.pricePerNight}/ night
+                  </p>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
