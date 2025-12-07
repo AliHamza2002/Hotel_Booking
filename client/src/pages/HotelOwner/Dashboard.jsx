@@ -11,6 +11,7 @@ const Dashboard = () => {
     });
     const [loading, setLoading] = useState(true);
     const [updatingPayment, setUpdatingPayment] = useState(null);
+    const [cancellingBooking, setCancellingBooking] = useState(null);
 
     useEffect(() => {
         fetchDashboardData();
@@ -53,6 +54,23 @@ const Dashboard = () => {
         }
     };
 
+    const handleCancelBooking = async (bookingId) => {
+        if (window.confirm('Are you sure you want to cancel this booking?')) {
+            setCancellingBooking(bookingId);
+            try {
+                const response = await bookingAPI.ownerCancelBooking(bookingId);
+                if (response.data.success) {
+                    alert('Booking cancelled successfully!');
+                    fetchDashboardData(); // Refresh dashboard
+                }
+            } catch (error) {
+                alert(error.response?.data?.message || 'Failed to cancel booking.');
+            } finally {
+                setCancellingBooking(null);
+            }
+        }
+    };
+
     if (loading) {
         return <div className="flex justify-center items-center h-64">Loading dashboard...</div>;
     }
@@ -91,7 +109,8 @@ const Dashboard = () => {
                             <th className='py-3 px-4 text-gray-800 font-medium max-sm:hidden'>Room Name</th>
                             <th className='py-3 px-4 text-gray-800 font-medium text-center'>Total Amount</th>
                             <th className='py-3 px-4 text-gray-800 font-medium text-center'>Payment</th>
-                            <th className='py-3 px-4 text-gray-800 font-medium text-center'>Booking Status</th>
+                            <th className='py-3 px-4 text-gray-800 font-medium text-center'>Status</th>
+                            <th className='py-3 px-4 text-gray-800 font-medium text-center'>Action</th>
                         </tr>
                     </thead>
                     <tbody className='text-sm'>
@@ -131,11 +150,22 @@ const Dashboard = () => {
                                             {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                                         </span>
                                     </td>
+                                    <td className='py-3 px-4 border-t border-gray-300 text-center'>
+                                        {item.status !== 'cancelled' && (
+                                            <button
+                                                onClick={() => handleCancelBooking(item._id)}
+                                                disabled={cancellingBooking === item._id}
+                                                className='px-3 py-1 text-xs bg-red-500 text-white rounded-full hover:bg-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed'
+                                            >
+                                                {cancellingBooking === item._id ? 'Cancelling...' : 'Cancel'}
+                                            </button>
+                                        )}
+                                    </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="5" className="py-4 text-center text-gray-500">No bookings found</td>
+                                <td colSpan="6" className="py-4 text-center text-gray-500">No bookings found</td>
                             </tr>
                         )}
                     </tbody>
