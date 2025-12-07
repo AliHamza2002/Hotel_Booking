@@ -349,9 +349,9 @@ const RoomDetail = () => {
 
             {/*Common Specification*/}
             <div>
-                <p className='max-w-3xl border-y border-gray-300 my-14 py-10 text-gray-500'>{room.hotelDescription || 'Guests will be allocated on the ground floor according to the availability. You get a comfortable apartment that has a true city feeling.'}</p>
+                <p className='max-w-3xl border-y border-gray-300 my-10 py-10 text-gray-500'>{room.hotelDescription || 'Guests will be allocated on the ground floor according to the availability. You get a comfortable apartment that has a true city feeling.'}</p>
             </div>
-            <div className='mt-24 space-y-4'>
+            <div className='my-20 space-y-4'>
                 {roomCommonData.map((spec, index) => (
                     <div key={index} className='flex items-start gap-2'>
                         <img src={spec.icon} alt={`${spec.title}-icon`} className='w-6.5' />
